@@ -22,8 +22,30 @@ void *ServerClass::readAndWriteSocket(void *_client)
             flag = false;
             break;
         }else {
-            std::string info= client->server_name + " send message :" + buffer;
+            std::string info = client->server_name + " send message :" + buffer;
             puts(info.data());
+            //create group
+            if(buffer[0] == 'c' && buffer[1] == 'g'){
+
+
+            }//send message only one user
+            else if(buffer[0] == 'm' && buffer[1] == 's') {
+                std::string buffer_str = std::string(buffer);
+                if(buffer_str.substr(0, 2) == "ms"){
+                    buffer_str.erase(0, 3);
+                    size_t found = buffer_str.find("/");
+                    if(found != std::string::npos){
+                        std::string user_name = buffer_str.substr(0, found);
+                        buffer_str.erase(0, found + 1);
+
+                    }
+
+                }
+
+            }//send message to group
+            else if (buffer[0] == 'm' && buffer[1] == 'g') {
+
+            }
             std::vector<ClientList*>::iterator it = ServerClass::clients.begin();
             while (it != ServerClass::clients.end()) {
                 if((*it) != client){
@@ -94,6 +116,8 @@ void ServerClass::acceptClients()
         }else {
             send(new_socket, "Welcome", 7, 0);
             std::cout << buffer << ": joined chat" << std::endl;
+            //send message to all user that is releated someone join the chat
+            this->sendMessageUserCreated(buffer);
 
             ClientList *client = new ClientList;
             client->server_name = buffer;
@@ -101,11 +125,41 @@ void ServerClass::acceptClients()
             client->thread = new pthread_t;
             this->clients.push_back(client);
             memset(buffer, 0x00, strlen(buffer));
+
             (void) pthread_join(*client->thread, NULL);
             pthread_create(client->thread, NULL, ServerClass::readAndWriteSocket, static_cast<void *>(client));
 
 
         }
+    }
+}
+void ServerClass::sendMessageUserCreated(std::string _username)
+{
+    std::string buffer_send = "uc/" + _username;
+    std::vector<ClientList*>::iterator it = ServerClass::clients.begin();
+    while (it != ServerClass::clients.end()) {
+        send((*it)->socket, buffer_send.data(), strlen(buffer_send.data()), 0);
+        ++it;
+    }
+}
+void ServerClass::createGroup(std::string _buffer)
+{
+    if(_buffer.substr(0, 2) == "cg"){
+        _buffer.erase(0, 3);
+        size_t found = _buffer.find("/");
+        if(found != std::string::npos){
+            std::string group_name = _buffer.substr(0, found);
+            _buffer.erase(0, found + 1);
+            std::vector<std::string> users;
+            found = _buffer.find("#");
+            while (found != std::string::npos) {
+                users.push_back(_buffer.substr(0, found));
+                _buffer.erase(0, found + 1);
+                found = _buffer.find("#");
+            }
+            this->client_group_info.push_back(std::make_pair(group_name, users));
+        }
+
     }
 }
 

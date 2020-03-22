@@ -11,7 +11,14 @@
 #include <vector>
 #include <pthread.h>
 #include <algorithm>
-class ClientList
+
+//these are message codes
+//uc/username => user created
+//cg/groupname/user#user#... =>created group
+//ms/username/message => message send directly one user
+//mg/groupname/message =>message send a group
+
+struct ClientList
 {
 public:
     int socket;
@@ -29,16 +36,20 @@ public:
 };
 class ServerClass
 {
+    static ServerClass instance;
     unsigned int port;
     std::string ip;
     int server_fd, addrlen;
     struct sockaddr_in address;
     static std::vector<ClientList*> clients;
+    std::vector< std::pair<std::string, std::vector<std::string>>> client_group_info;
     static void *readAndWriteSocket(void *_client);
     void initServer();
+    void acceptClients();
+    void sendMessageUserCreated(std::string _username);
 public:
     explicit ServerClass(const std::string _ip, const unsigned int _port);
-    void acceptClients();
+    void createGroup(std::string _buffer);
 };
 
 #endif // SERVERCLASS_H
