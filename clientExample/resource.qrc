@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/">
+        <file>back.png</file>
+        <file>create_group.png</file>
+    </qresource>
+</RCC>

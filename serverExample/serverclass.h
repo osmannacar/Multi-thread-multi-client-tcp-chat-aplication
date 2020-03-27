@@ -7,10 +7,9 @@
 #include <unistd.h>
 #include <netdb.h>
 #include <netinet/in.h>
-#include <string.h>
-#include <vector>
-#include <pthread.h>
 #include <algorithm>
+#include "clientlist.h"
+#include <map>
 
 //these are message codes
 //uc/username => user created
@@ -18,38 +17,31 @@
 //ms/username/message => message send directly one user
 //mg/groupname/message =>message send a group
 
-struct ClientList
-{
-public:
-    int socket;
-    std::string server_name;
-    pthread_t *thread;
-    bool operator ==(const ClientList &obj){
-        bool flag = this->socket == obj.socket;
-        flag = flag && (this->server_name == obj.server_name);
-        flag = flag && (this->thread == obj.thread);
-        return flag;
-    }
-    bool operator !=(const ClientList &obj){
-        return !this->operator ==(obj);
-    }
-};
 class ServerClass
 {
-    static ServerClass instance;
     unsigned int port;
     std::string ip;
     int server_fd, addrlen;
+    pthread_mutex_t lock;
     struct sockaddr_in address;
-    static std::vector<ClientList*> clients;
-    std::vector< std::pair<std::string, std::vector<std::string>>> client_group_info;
-    static void *readAndWriteSocket(void *_client);
+    std::vector<ClientList*> clients;
+    std::multimap<std::string, std::string> client_group_info;
+    static void *readAndWriteSocket(void *_obje_client);
     void initServer();
     void acceptClients();
+    void sendOldUsersToNew(int socket);
     void sendMessageUserCreated(std::string _username);
+    void sendMessageUserLeft(std::string _username);
+    std::vector<std::string> createGroup(std::string _buffer);
+    void removeFromGroups(std::string _user);
 public:
     explicit ServerClass(const std::string _ip, const unsigned int _port);
-    void createGroup(std::string _buffer);
+};
+
+struct ObjeClient
+{
+    ServerClass *obje;
+    ClientList *client;
 };
 
 #endif // SERVERCLASS_H

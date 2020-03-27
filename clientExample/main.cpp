@@ -1,8 +1,19 @@
+#include <QApplication>
 #include <iostream>
-#include "clientclass.h"
-int main()
+#include "form.h"
+
+int main(int argc, char *argv[])
 {
+    QApplication a(argc, argv);
     std::cout << "\033]0;" << "Client" << "\007" << "Client" << std::endl;
-    ClientClass clclas("127.0.0.1", 1337);
-    return 0;
+    Form *form;
+    bool ok;
+    QString text = QInputDialog::getText(0, "Input dialog", "User Name", QLineEdit::Normal, "", &ok);
+    if (ok && !text.isEmpty()) {
+            form = new Form(text);
+            form->show();
+    }
+
+
+    return a.exec();
 }
