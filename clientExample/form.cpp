@@ -2,8 +2,8 @@
 #include "ui_form.h"
 #include "ListViewDelegate.h"
 
-Form::Form(const QString _username, QWidget *parent) :
-    QWidget(parent), name(_username),
+Form::Form(const QString _ip, const unsigned int _port, const QString _username, QWidget *parent) :
+    QWidget(parent), ip(_ip), port(_port), name(_username),
     ui(new Ui::Form)
 {
     ui->setupUi(this);
@@ -36,13 +36,13 @@ Form::Form(const QString _username, QWidget *parent) :
     this->ui->btn_menu->setMenu(this->menu);
 
     //activated
-    this->clientClass = new ClientClass(QString("127.0.0.1"), this->name, 1337);
+    this->clientClass = new ClientClass(this->ip, this->name, this->port);
 
     QObject::connect(this->ui->textEdit_chat, SIGNAL(enterPress()), this, SLOT(outGoingMessage()));
     QObject::connect(this->ui->listWidget_chat_users, SIGNAL(clicked(QModelIndex)), this, SLOT(onUserChatClick(QModelIndex)));
     QObject::connect(this->ui->listWidget_users, SIGNAL(pressed(QModelIndex)), this, SLOT(onUserClick(QModelIndex)));
-    QObject::connect(this->ui->btn_back, SIGNAL(clicked()), this, SLOT(returnUserChat()));
-    QObject::connect(this->ui->btn_back_user_chat, SIGNAL(clicked()), this, SLOT(returnUserChat()));
+    QObject::connect(this->ui->btn_back, SIGNAL(clicked()), this, SLOT(goBackUserChat()));
+    QObject::connect(this->ui->btn_back_user_chat, SIGNAL(clicked()), this, SLOT(goBackUserChat()));
     QObject::connect(this->actionUser, SIGNAL(triggered()), this, SLOT(showAllUser()));
     QObject::connect(this->actionGroup, SIGNAL(triggered()), this, SLOT(showCreateGroupWidget()));
     QObject::connect(this->ui->btn_create_group, SIGNAL(clicked()), this, SLOT(createGroup()));
@@ -164,6 +164,12 @@ void Form::setChat(int row)
     QAbstractItemModel *model = this->ui->listWidget_chat_users->model();
     this->ui->listWidget_chat_users->setCurrentIndex(model->index(row, 0));
     this->ui->listView_chat->setModel(this->chatModels[row]);
+    //control of user left from chat app
+    if(!this->ui->listWidget_chat_users->item(row)->text().contains("\n") && !this->userlist.value(this->ui->listWidget_chat_users->item(row)->text())){
+        this->ui->textEdit_chat->setEnabled(false);
+    }else {
+        this->ui->textEdit_chat->setEnabled(true);
+    }
     this->ui->lbl_chat_name->setText(this->ui->listWidget_chat_users->item(row)->text());
 
     this->ui->widget_chat->setHidden(false);
@@ -211,7 +217,7 @@ void Form::onUserChatClick(QModelIndex index)
     this->setChat(index.row());
 }
 
-void Form::returnUserChat()
+void Form::goBackUserChat()
 {
     this->ui->widget_chat->setHidden(true);
     this->ui->widget_user_chat->setHidden(false);

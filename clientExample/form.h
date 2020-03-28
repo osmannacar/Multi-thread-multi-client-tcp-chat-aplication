@@ -13,7 +13,7 @@ class Form : public QWidget
     Q_OBJECT
 
 public:
-    explicit Form(const QString _username, QWidget *parent = nullptr);
+    explicit Form(const QString _ip, const unsigned int _port ,const QString _username, QWidget *parent = nullptr);
     ~Form();
     void addUserToChatlist(QString user_name);
     void setChat(int row);
@@ -23,7 +23,7 @@ public slots:
     void outGoingMessage();
     void onUserClick(QModelIndex index);
     void onUserChatClick(QModelIndex index);
-    void returnUserChat();
+    void goBackUserChat();
     void showAllUser();
     void showCreateGroupWidget();
     void createGroup();
@@ -39,6 +39,8 @@ private:
     QMap<QString, bool> userlist;
     QMultiMap<QString, QString> groupList;
     QString name;
+    QString ip;
+    unsigned int port;
     QMenu *menu;
     QAction *actionUser;
     QAction *actionGroup;
